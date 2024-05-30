@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '14'
 
@@ -27,8 +27,11 @@ jobs:
           LATEST_RELEASE_URL=$(echo $response | jq -r '.zipball_url')
           RELEASE_NOTES=$(echo $response | jq -r '.body')
           echo "LATEST_RELEASE_URL=$LATEST_RELEASE_URL" >> $GITHUB_OUTPUT
-          echo "RELEASE_NOTES=$RELEASE_NOTES" >> $GITHUB_OUTPUT
-
+          # Use a heredoc to properly handle multiline output
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          echo "${RELEASE_NOTES}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
       - name: Download the latest release
         run: |
           curl -L $LATEST_RELEASE_URL -o source.zip
