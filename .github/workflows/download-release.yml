@@ -37,7 +37,7 @@ jobs:
           
       - name: Download the latest release
         run: |
-          curl -L $LATEST_RELEASE_URL -o source.zip
+          curl -L ${{ steps.fetch_release.outputs.LATEST_RELEASE_URL }} -o source.zip
 
       - name: Extract the downloaded ZIP
         run: |
@@ -50,4 +50,4 @@ jobs:
       - name: Print release notes
         run: |
           echo "Release Notes:"
-          echo "$RELEASE_NOTES"
+          echo "${{ steps.fetch_release.outputs.RELEASE_NOTES }}"
