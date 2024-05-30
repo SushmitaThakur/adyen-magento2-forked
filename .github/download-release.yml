@@ -1,0 +1,46 @@
+name: Download Release ZIP and Fetch Release Notes
+
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow
+  push:
+  
+jobs:
+  download-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Fetch the latest release
+        id: fetch_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/SushmitaThakur/adyen-magento2-forked/releases/latest)
+          LATEST_RELEASE_URL=$(echo $response | jq -r '.zipball_url')
+          RELEASE_NOTES=$(echo $response | jq -r '.body')
+          echo "LATEST_RELEASE_URL=${LATEST_RELEASE_URL}" >> $GITHUB_ENV
+          echo "RELEASE_NOTES=${RELEASE_NOTES}" >> $GITHUB_ENV
+
+      - name: Download the latest release
+        run: |
+          curl -L ${{ env.LATEST_RELEASE_URL }} -o source.zip
+
+      - name: Extract the downloaded ZIP
+        run: |
+          unzip source.zip -d ./source
+
+      - name: List files for verification
+        run: |
+          ls -la ./source
+
+      - name: Print release notes
+        run: |
+          echo "Release Notes:"
+          echo "${{ env.RELEASE_NOTES }}"
