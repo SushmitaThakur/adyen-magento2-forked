@@ -64,11 +64,11 @@ jobs:
           ADOBE_CLIENT_ID: ${{ secrets.ADOBE_CLIENT_ID }}
           ADOBE_CLIENT_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
         run: |
-          response=$(curl -s -X POST \
-          -u '${{ secrets.ADOBE_CLIENT_ID }}:${{ secrets.ADOBE_CLIENT_SECRET }}' \
+          response=$(curl -X POST \
+          -u 'VKIMCVQ2ZN:78c24c7ab3ba4283b72859147dbbc73581fdf114' \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
-          https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token
+          https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token)
           
           echo "Session Token Response: $response"
           
