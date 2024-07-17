@@ -42,7 +42,7 @@ jobs:
           EXTRACTED_DIR=$(unzip -l source.zip | awk '/^-/ {print $4}' | grep -oE '^[^/]+' | head -n 1)
 
           # Create a new zip file with exclusions
-          zip -r processed_release.zip "$EXTRACTED_DIR" -x "*.git*" -x "*.DS_Store"
+          zip -r processed_release.zip "$EXTRACTED_DIR" -x ".git" "*.DS_Store"
 
           # Clean up
           rm -rf source.zip "$EXTRACTED_DIR"
