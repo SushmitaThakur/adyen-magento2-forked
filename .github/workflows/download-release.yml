@@ -1,13 +1,12 @@
 
-
-name: Download Release ZIP and Fetch Release Notes
+name: Download Release and Create Archive
 
 on:
   workflow_dispatch:
   push:
 
 jobs:
-  download-release:
+  download-and-archive:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,29 +26,21 @@ jobs:
           echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          echo "$LATEST_RELEASE_URL"
-          echo "$RELEASE_NOTES" 
+          echo "Latest Release URL: $LATEST_RELEASE_URL"
+          echo "Release Notes: $RELEASE_NOTES"
 
-      - name: Download and process the latest release
+      - name: Download the latest release
         run: |
-          
-          # Download the zip file
           curl -L ${{ steps.fetch_release.outputs.LATEST_RELEASE_URL }} -o source.zip
-
-          # Unzip the downloaded file
           unzip source.zip
+          rm source.zip
 
-          # Get the name of the extracted directory
-          EXTRACTED_DIR=$(unzip -l source.zip | awk '/^-/ {print $4}' | grep -oE '^[^/]+' | head -n 1)
-
-          # Create a list of files to include, excluding .git and .DS_Store
-          find "$EXTRACTED_DIR" -type f ! -path "*.git*" ! -name ".DS_Store" > files_to_zip.txt
-
-          # Create a new zip file with the files from the list
-          zip processed_release.zip -@ < files_to_zip.txt
-
-          # Clean up
-          rm -rf source.zip "$EXTRACTED_DIR" files_to_zip.txt
+      - name: Create Archive
+        uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          filename: 'processed_release.zip'
+          exclusions: '*.git* *.DS_Store'
 
       - name: List files for verification
         run: |
@@ -65,4 +56,15 @@ jobs:
         with:
           name: processed-release
           path: processed_release.zip
-
+      
+      - name: Get session token
+        env:
+          ADOBE_API_URL: ${{ secrets.ADOBE_API_URL }}
+          ADOBE_APP_ID: ${{ secrets.ADOBE_CLIENT_ID }}
+          ADOBE_APP_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
+        run: |
+          curl -X POST \
+          -u '${{ secrets.$ADOBE_CLIENT_ID }}:${{ secrets.$ADOBE_CLIENT_SECRET }}' \
+          -H 'Content-Type: application/json' \
+          -d '{ "grant_type" : "session" }' \
+          https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token
