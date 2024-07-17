@@ -102,7 +102,7 @@ jobs:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
         run: |
-          response=$(curl -X POST \
+          response=$(curl -v -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: multipart/form-data; boundary=UNIQUE_BOUNDARY_TOKEN" \
           -F "file[]=@processed_release.zip;type=application/zip;filename=processed_release.zip" \
