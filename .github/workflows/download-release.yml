@@ -67,4 +67,4 @@ jobs:
           -u '${{ secrets.ADOBE_APP_ID }}:${{ secrets.ADOBE_APP_SECRET }}' \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
-          https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token
+          ${{ secrets.ADOBE_API_URL}}
