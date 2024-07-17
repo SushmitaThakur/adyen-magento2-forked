@@ -97,16 +97,15 @@ jobs:
             echo "$response"
           fi
 
-      - name: Upload processed release to Adobe Commerce
+      - name: Upload processed release to Adobe Commerce Marketplace
         env:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
         run: |
-          # Example: Upload the processed release to Adobe Commerce
           response=$(curl -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: application/zip" \
           --data-binary @processed_release.zip \
-          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/extensions/upload")
+          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/files/file")
           
           echo "Upload Response:"
           echo "$response"
@@ -118,4 +117,13 @@ jobs:
           else
             echo "Invalid JSON response. Raw output:"
             echo "$response"
+          fi
+          
+          # Extract file_upload_id if present
+          file_upload_id=$(echo "$response" | jq -r '.file_upload_id // empty')
+          if [ ! -z "$file_upload_id" ]; then
+            echo "File upload ID: $file_upload_id"
+            echo "FILE_UPLOAD_ID=$file_upload_id" >> $GITHUB_OUTPUT
+          else
+            echo "File upload ID not found in the response."
           fi
