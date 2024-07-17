@@ -100,12 +100,13 @@ jobs:
       - name: Upload processed release to Adobe Commerce Marketplace
         env:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
+          BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
         run: |
           response=$(curl -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
-          -H "Content-Type: application/zip" \
-          --data-binary @processed_release.zip \
-          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/files/file")
+          -H "Content-Type: multipart/form-data; boundary=UNIQUE_BOUNDARY_TOKEN" \
+          -F "file[]=@processed_release.zip;type=application/zip;filename=processed_release.zip" \
+          "${BASE_URL}/rest/v1/files/uploads")
           
           echo "Upload Response:"
           echo "$response"
@@ -114,16 +115,18 @@ jobs:
           if echo "$response" | jq empty; then
             echo "Valid JSON response:"
             echo "$response" | jq .
+            
+            # Extract file_upload_id if present
+            file_upload_id=$(echo "$response" | jq -r '.[0].file_upload_id // empty')
+            if [ ! -z "$file_upload_id" ]; then
+              echo "File upload ID: $file_upload_id"
+              echo "FILE_UPLOAD_ID=$file_upload_id" >> $GITHUB_OUTPUT
+            else
+              echo "File upload ID not found in the response."
+              exit 1
+            fi
           else
             echo "Invalid JSON response. Raw output:"
             echo "$response"
-          fi
-          
-          # Extract file_upload_id if present
-          file_upload_id=$(echo "$response" | jq -r '.file_upload_id // empty')
-          if [ ! -z "$file_upload_id" ]; then
-            echo "File upload ID: $file_upload_id"
-            echo "FILE_UPLOAD_ID=$file_upload_id" >> $GITHUB_OUTPUT
-          else
-            echo "File upload ID not found in the response."
+            exit 1
           fi
