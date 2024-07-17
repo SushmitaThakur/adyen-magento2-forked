@@ -58,15 +58,41 @@ jobs:
           path: processed_release.zip
       
       - name: Get session token
+        id: get_session_token
         env:
           ADOBE_API_URL: ${{ secrets.ADOBE_API_URL }}
           ADOBE_CLIENT_ID: ${{ secrets.ADOBE_CLIENT_ID }}
           ADOBE_CLIENT_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
         run: |
-          curl -X POST \
-          -u 'VKIMCVQ2ZN:78c24c7ab3ba4283b72859147dbbc73581fdf114' \
+          response=$(curl -s -X POST \
+          -u '${{ secrets.ADOBE_CLIENT_ID }}:${{ secrets.ADOBE_CLIENT_SECRET }}' \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
-          https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token
+          ${{ secrets.ADOBE_API_URL }})
           
+          echo "Session Token Response: $response"
           
+          SESSION_TOKEN=$(echo $response | jq -r '.ust')
+          echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Use session token to interact with Adobe Commerce API
+        env:
+          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
+        run: |
+          # Example: Get system information
+          curl -s -X GET \
+          -H "Authorization: Bearer $SESSION_TOKEN" \
+          -H "Content-Type: application/json" \
+          "${{ secrets.ADOBE_API_URL }}/rest/v1/system" | jq .
+
+      - name: Upload processed release to Adobe Commerce
+        env:
+          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
+        run: |
+          # Example: Upload the processed release to Adobe Commerce
+          # Note: You'll need to adjust this based on the actual API endpoint and requirements
+          curl -X POST \
+          -H "Authorization: Bearer $SESSION_TOKEN" \
+          -H "Content-Type: application/zip" \
+          --data-binary @processed_release.zip \
+          "${{ secrets.ADOBE_API_URL }}/rest/v1/extensions/upload"
