@@ -64,7 +64,7 @@ jobs:
           ADOBE_APP_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
         run: |
           curl -X POST \
-          -u '${{ secrets.ADOBE_APP_ID }}:${{ secrets.ADOBE_APP_SECRET }}' \
+          -u 'VKIMCVQ2ZN:78c24c7ab3ba4283b72859147dbbc73581fdf114' \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
           https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token
