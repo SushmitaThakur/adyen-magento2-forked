@@ -68,7 +68,7 @@ jobs:
           -u '${{ secrets.ADOBE_CLIENT_ID }}:${{ secrets.ADOBE_CLIENT_SECRET }}' \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
-          ${{ secrets.ADOBE_API_URL }})
+          https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token
           
           echo "Session Token Response: $response"
           
