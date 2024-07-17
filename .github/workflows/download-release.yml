@@ -98,14 +98,15 @@ jobs:
           fi
 
       - name: Upload processed release to Adobe Commerce Marketplace
+        id: upload_to_adobe
         env:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
         run: |
           response=$(curl -v -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
-          -H "Content-Type: multipart/form-data; boundary=UNIQUE_BOUNDARY_TOKEN" \
-          -F "file[]=@processed_release.zip;type=application/zip;filename=processed_release.zip" \
+          -H "Content-Type: multipart/form-data" \
+          -F "file=@processed_release.zip;type=application/zip" \
           "${BASE_URL}/rest/v1/files/uploads")
           
           echo "Upload Response:"
@@ -129,4 +130,38 @@ jobs:
             echo "Invalid JSON response. Raw output:"
             echo "$response"
             exit 1
+          fi
+      - name: Check submission status
+        id: Check_status
+        env:
+          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
+          BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
+        run: |
+          # First, get all submissions
+          submissions_response=$(curl -s -X GET \
+          -H "Authorization: Bearer $SESSION_TOKEN" \
+          -H "Content-Type: application/json" \
+          "${BASE_URL}/rest/v1/extensions/submissions")
+
+          echo "Submissions Response:"
+          echo "$submissions_response" | jq .
+
+          # Check if there's a submission with the file we just uploaded
+          file_upload_id="${{ steps.upload_to_adobe.outputs.FILE_UPLOAD_ID }}"
+          submission_id=$(echo "$submissions_response" | jq -r --arg file_id "$file_upload_id" '.[] | select(.files[] | .file_upload_id == $file_id) | .submission_id')
+
+          if [ -n "$submission_id" ]; then
+            echo "Submission ID for the uploaded file: $submission_id"
+            echo "SUBMISSION_ID=$submission_id" >> $GITHUB_OUTPUT
+
+            # Get details for this specific submission
+            submission_details=$(curl -s -X GET \
+            -H "Authorization: Bearer $SESSION_TOKEN" \
+            -H "Content-Type: application/json" \
+            "${BASE_URL}/rest/v1/extensions/submissions/$submission_id")
+
+            echo "Submission Details:"
+            echo "$submission_details" | jq .
+          else
+            echo "No submission found for the uploaded file."
           fi
