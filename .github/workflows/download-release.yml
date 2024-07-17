@@ -83,7 +83,7 @@ jobs:
           curl -s -X GET \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: application/json" \
-          "${{ secrets.ADOBE_API_URL }}/rest/v1/system" | jq .
+          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/system" | jq .
 
       - name: Upload processed release to Adobe Commerce
         env:
@@ -95,4 +95,4 @@ jobs:
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: application/zip" \
           --data-binary @processed_release.zip \
-          "${{ secrets.ADOBE_API_URL }}/rest/v1/extensions/upload"
+          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/extensions/upload"
