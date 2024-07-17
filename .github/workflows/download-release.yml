@@ -103,7 +103,7 @@ jobs:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
         run: |
-          response=$(curl -v -X POST \
+          response=$(curl -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: multipart/form-data" \
           -F "file=@processed_release.zip;type=application/zip" \
@@ -137,8 +137,6 @@ jobs:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
         run: |
-          echo ${{ steps.get_session_token.outputs.SESSION_TOKEN }} \
-          echo "SESSION_TOKEN IS" : ${SESSION_TOKEN} \
           # First, get all submissions
           submissions_response=$(curl -s -X GET \
           -H "Authorization: Bearer ${SESSION_TOKEN}" \
