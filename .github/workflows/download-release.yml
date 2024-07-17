@@ -67,4 +67,4 @@ jobs:
           -u '${{ secrets.ADOBE_APP_ID }}:${{ secrets.ADOBE_APP_SECRET }}' \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
-          ${{ secrets.ADOBE_API_URL}}
+          ${{ secrets.ADOBE_API_URL }}/rest/v1/app/session/token
