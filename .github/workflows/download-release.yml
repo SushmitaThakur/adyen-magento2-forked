@@ -32,6 +32,7 @@ jobs:
 
       - name: Download and process the latest release
         run: |
+          
           # Download the zip file
           curl -L ${{ steps.fetch_release.outputs.LATEST_RELEASE_URL }} -o source.zip
 
@@ -41,11 +42,14 @@ jobs:
           # Get the name of the extracted directory
           EXTRACTED_DIR=$(unzip -l source.zip | awk '/^-/ {print $4}' | grep -oE '^[^/]+' | head -n 1)
 
-          # Create a new zip file with exclusions
-          zip -r processed_release.zip "$EXTRACTED_DIR" -x ".git" "*.DS_Store"
+          # Create a list of files to include, excluding .git and .DS_Store
+          find "$EXTRACTED_DIR" -type f ! -path "*.git*" ! -name ".DS_Store" > files_to_zip.txt
+
+          # Create a new zip file with the files from the list
+          zip processed_release.zip -@ < files_to_zip.txt
 
           # Clean up
-          rm -rf source.zip "$EXTRACTED_DIR"
+          rm -rf source.zip "$EXTRACTED_DIR" files_to_zip.txt
 
       - name: List files for verification
         run: |
