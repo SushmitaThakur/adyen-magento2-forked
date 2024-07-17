@@ -80,19 +80,42 @@ jobs:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
         run: |
           # Example: Get system information
-          curl -s -X GET \
+          response=$(curl -s -X GET \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: application/json" \
-          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/system" | jq .
+          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/system")
+          
+          echo "API Response:"
+          echo "$response"
+          
+          # Check if the response is valid JSON
+          if echo "$response" | jq empty; then
+            echo "Valid JSON response:"
+            echo "$response" | jq .
+          else
+            echo "Invalid JSON response. Raw output:"
+            echo "$response"
+          fi
 
       - name: Upload processed release to Adobe Commerce
         env:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
         run: |
           # Example: Upload the processed release to Adobe Commerce
-          # Note: You'll need to adjust this based on the actual API endpoint and requirements
-          curl -X POST \
+          response=$(curl -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: application/zip" \
           --data-binary @processed_release.zip \
-          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/extensions/upload"
+          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/extensions/upload")
+          
+          echo "Upload Response:"
+          echo "$response"
+          
+          # Check if the response is valid JSON
+          if echo "$response" | jq empty; then
+            echo "Valid JSON response:"
+            echo "$response" | jq .
+          else
+            echo "Invalid JSON response. Raw output:"
+            echo "$response"
+          fi
