@@ -52,7 +52,7 @@ jobs:
           echo "${{ steps.fetch_release.outputs.RELEASE_NOTES }}"
 
       - name: Upload processed release as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: processed-release
           path: processed_release.zip
