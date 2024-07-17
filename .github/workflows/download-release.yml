@@ -97,38 +97,48 @@ jobs:
             echo "$response"
           fi
 
-      - name: Upload processed release to Adobe Commerce Marketplace
-        id: upload_to_adobe
+      - name: Upload and fetch file ID
+        id: upload_and_fetch
         env:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
         run: |
-          response=$(curl -X POST \
+          # Upload the file
+          upload_response=$(curl -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: multipart/form-data" \
           -F "file=@processed_release.zip;type=application/zip" \
           "${BASE_URL}/rest/v1/files/uploads")
           
           echo "Upload Response:"
-          echo "$response"
+          echo "$upload_response"
+          
+          # Fetch all files
+          files_response=$(curl -s -X GET \
+          -H "Authorization: Bearer $SESSION_TOKEN" \
+          -H "Content-Type: application/json" \
+          "${BASE_URL}/rest/v1/files/uploads")
+          
+          echo "Files Response:"
+          echo "$files_response"
           
           # Check if the response is valid JSON
-          if echo "$response" | jq empty; then
-            echo "Valid JSON response:"
-            echo "$response" | jq .
+          if echo "$files_response" | jq empty; then
+            echo "Valid JSON response for files list"
             
-            # Extract file_upload_id if present
-            file_upload_id=$(echo "$response" | jq -r '.[0].file_upload_id // empty')
+            # Extract the most recent file_upload_id
+            file_upload_id=$(echo "$files_response" | jq -r 'sort_by(.file_upload_id) | reverse | .[0].file_upload_id')
+            
             if [ ! -z "$file_upload_id" ]; then
-              echo "File upload ID: $file_upload_id"
+              echo "Most recent File upload ID: $file_upload_id"
               echo "FILE_UPLOAD_ID=$file_upload_id" >> $GITHUB_OUTPUT
             else
-              echo "File upload ID not found in the response."
+              echo "No file upload IDs found in the response."
               exit 1
             fi
           else
-            echo "Invalid JSON response. Raw output:"
-            echo "$response"
+            echo "Invalid JSON response for files list. Raw output:"
+            echo "$files_response"
             exit 1
           fi
       - name: Check submission status
