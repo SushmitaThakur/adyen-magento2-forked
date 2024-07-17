@@ -138,9 +138,10 @@ jobs:
           BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
         run: |
           echo ${{ steps.get_session_token.outputs.SESSION_TOKEN }} \
+          echo "SESSION_TOKEN IS" : ${SESSION_TOKEN} \
           # First, get all submissions
           submissions_response=$(curl -s -X GET \
-          -H "Authorization: Bearer $SESSION_TOKEN" \
+          -H "Authorization: Bearer ${SESSION_TOKEN}" \
           -H "Content-Type: application/json" \
           "${BASE_URL}/rest/v1/extensions/submissions")
 
