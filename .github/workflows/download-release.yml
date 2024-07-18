@@ -5,8 +5,9 @@ on:
   push:
 
 jobs:
-  download-and-archive:
+  marketplace-automation:
     runs-on: ubuntu-latest
+    environment: internal 
 
     steps:
       - name: Checkout repository
