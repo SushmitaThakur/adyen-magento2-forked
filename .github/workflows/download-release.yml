@@ -90,6 +90,7 @@ jobs:
           
           echo "Upload Response:"
           echo "$upload_response"
+          echo "Session token: $SESSION_TOKEN"
           
           # Fetch all files
           files_response=$(curl -s -X GET \
