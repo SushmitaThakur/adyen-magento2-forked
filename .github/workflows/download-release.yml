@@ -55,14 +55,13 @@ jobs:
       - name: Prepare the request payload
         run: |
           touch file-payload && \
-          printf '--UNIQUE_BOUNDARY_TOKEN\n' > file-payload && \
-          printf 'Content-Disposition: form-data; name="file[]"; filename="processed-release.zip"\n' >> file-payload && \
-          printf 'Content-Type: application/zip\n' >> file-payload && \
-          printf '\n' >> file-payload && \
+          echo "--UNIQUE_BOUNDARY_TOKEN" > file-payload && \
+          echo 'Content-Disposition: form-data; name="file[]"; filename="processed-release.zip"' >> file-payload && \
+          echo 'Content-Type: application/zip' >> file-payload && \
+          echo '' >> file-payload && \
           cat processed-release.zip >> file-payload && \
-          printf '\n' >> file-payload && \
-          printf '\n' >> file-payload && \
-          printf "--UNIQUE_BOUNDARY_TOKEN--" >> file-payload
+          echo '' >> file-payload && \
+          echo "--UNIQUE_BOUNDARY_TOKEN--" >> file-payload
         
       - name: Get session token
         id: get_session_token
