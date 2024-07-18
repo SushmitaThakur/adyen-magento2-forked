@@ -127,8 +127,11 @@ jobs:
           BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
         run: |
-          json_payload=$(cat <<EOF
-          [{
+          # Submit the package
+          submission_response=$(curl -v -X POST \
+          -H "Authorization: Bearer $SESSION_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '[{
             "action": {
               "technical": "submit",
               "marketing": "submit"
@@ -150,6 +153,7 @@ jobs:
               }
             ],
             "name": "Your Extension Name",
+            "short_description": "A brief description of your extension",
             "long_description": "Your long description here",
             "release_notes": "${{ steps.fetch_release.outputs.RELEASE_NOTES }}",
             "version": "1.0.0",
@@ -164,28 +168,28 @@ jobs:
             "categories": [
               "//Extensions//Your Category"
             ],
-            "license_type": "apache"
-          }]
-          EOF
-          )
-          
-          # Submit the package
-          submission_response=$(curl -X POST \
-          -H "Authorization: Bearer $SESSION_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d "$json_payload" \
+            "license_type": "apache",
+            "sku": "your-vendor/your-module-name"
+          }]' \
           "${BASE_URL}/rest/v1/products/packages")
           
           echo "Submission Response:"
           echo "$submission_response"
           
-          # Extract the submission_id
-          submission_id=$(echo "$submission_response" | jq -r '.[0].submission_id // empty')
-          if [ -n "$submission_id" ]; then
-            echo "SUBMISSION_ID=$submission_id" >> $GITHUB_OUTPUT
-            echo "Submission ID: $submission_id"
+          # Check if the response is valid JSON
+          if echo "$submission_response" | jq empty; then
+            echo "Valid JSON response"
+            submission_id=$(echo "$submission_response" | jq -r '.[0].submission_id // empty')
+            if [ -n "$submission_id" ]; then
+              echo "SUBMISSION_ID=$submission_id" >> $GITHUB_OUTPUT
+              echo "Submission ID: $submission_id"
+            else
+              echo "Failed to extract submission ID from the response."
+              exit 1
+            fi
           else
-            echo "Failed to extract submission ID from the response."
+            echo "Invalid JSON response. Raw output:"
+            echo "$submission_response"
             exit 1
           fi
       - name: Check submission status
