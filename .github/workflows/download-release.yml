@@ -135,15 +135,24 @@ jobs:
             },
             "type": "extension",
             "platform": "M2",
-            "version_compatibility": [
-              {
-                "edition": "CE",
-                "versions": ["2.4"]
-              }
+            "version_compatibility" : [
+            {
+              "edition" : "CE",
+              "versions" : ["2.4"]
+            },
+            {
+              "edition" : "EE",
+              "versions" : ["2.4"]
+            },
+            {
+              "edition" : "ECE",
+              "versions" : ["2.4"]
+            }
             ],
             "name": "Your Extension Name",
             "long_description": "Your long description here",
-            "release_notes": "Your release notes here",
+            
+            "release_notes": "${{ steps.fetch_release.outputs.RELEASE_NOTES}}",
             "version": "1.0.0",
             "artifact": {
               "file_upload_id": "$FILE_UPLOAD_ID"
@@ -156,7 +165,7 @@ jobs:
             "categories": [
               "//Extensions//Your Category"
             ],
-            "license_type": "osi-approved-open-source"
+            "license_type": "apache"
           }]
           EOF
           )
