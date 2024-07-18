@@ -26,8 +26,8 @@ jobs:
           echo "$release_notes" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          echo "Latest Release URL: $LATEST_RELEASE_URL"
-          echo "Release Notes: $RELEASE_NOTES"
+          echo "Latest Release URL: $release_url"
+          echo "Release Notes: $release_notes"
 
       - name: Download the latest release
         run: |
@@ -74,7 +74,7 @@ jobs:
           -u "${ADOBE_CLIENT_ID}:${ADOBE_CLIENT_SECRET}" \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
-          ${ADOBE_API_URL}/rest/v1/app/session/token)
+          ${BASE_URL}/rest/v1/app/session/token)
 
           SESSION_TOKEN=$(echo $response | jq -r '.ust')
           echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
@@ -85,14 +85,14 @@ jobs:
         id: upload_and_fetch
         env:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
-          ADOBE_API_URL: ${{ secrets.ADOBE_API_URL }}
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
         run: |
           # Upload the file
           upload_response=$(curl -X POST \
             -H "Authorization: Bearer $SESSION_TOKEN" \
              -H 'Content-Type: multipart/form-data; boundary=UNIQUE_BOUNDARY_TOKEN' \
              --data-binary @file-payload \
-            "${ADOBE_API_URL}/rest/v1/files/uploads")
+            "${BASE_URL}/rest/v1/files/uploads")
       
           # Check if the upload was successful
           if echo "$upload_response" | grep -q 'error'; then
