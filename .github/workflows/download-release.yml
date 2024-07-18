@@ -91,11 +91,34 @@ jobs:
           echo "Upload Response:"
           echo "$upload_response"
           
-          # Extract the file_upload_id
-          file_upload_id=$(echo "$upload_response" | jq -r '.[0].file_upload_id')
-          echo "FILE_UPLOAD_ID=$file_upload_id" >> $GITHUB_OUTPUT
-          echo "File upload ID: $file_upload_id"
-
+          # Fetch all files
+          files_response=$(curl -s -X GET \
+          -H "Authorization: Bearer $SESSION_TOKEN" \
+          -H "Content-Type: application/json" \
+          "${BASE_URL}/rest/v1/files/uploads")
+          
+          echo "Files Response:"
+          echo "$files_response"
+          
+          # Check if the response is valid JSON
+          if echo "$files_response" | jq empty; then
+            echo "Valid JSON response for files list"
+            
+            # Extract the most recent file_upload_id
+            file_upload_id=$(echo "$files_response" | jq -r 'sort_by(.file_upload_id) | reverse | .[0].file_upload_id')
+            
+            if [ ! -z "$file_upload_id" ]; then
+              echo "Most recent File upload ID: $file_upload_id"
+              echo "FILE_UPLOAD_ID=$file_upload_id" >> $GITHUB_OUTPUT
+            else
+              echo "No file upload IDs found in the response."
+              exit 1
+            fi
+          else
+            echo "Invalid JSON response for files list. Raw output:"
+            echo "$files_response"
+            exit 1
+          fi
       - name: Submit package
         id: submit_package
         env:
@@ -137,22 +160,18 @@ jobs:
           }]
           EOF
           )
-
           # Submit the package
           submission_response=$(curl -v -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: application/json" \
           -d "$json_payload" \
           "${BASE_URL}/rest/v1/products/packages")
-
           echo "Submission Response:"
           echo "$submission_response"
-
           # Extract the submission_id
           submission_id=$(echo "$submission_response" | jq -r '.[0].submission_id')
           echo "SUBMISSION_ID=$submission_id" >> $GITHUB_OUTPUT
           echo "Submission ID: $submission_id"
-
       - name: Check submission status
         id: check_status
         env:
@@ -164,14 +183,12 @@ jobs:
             echo "No submission ID found. Skipping status check."
             exit 0
           fi
-
           submission_details=$(curl -s -X GET \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: application/json" \
           "${BASE_URL}/rest/v1/products/packages/$SUBMISSION_ID")
-
           echo "Submission Details:"
           echo "$submission_details" | jq .
-
           status=$(echo "$submission_details" | jq -r '.eqp_status')
           echo "Current submission status: $status"
+          fis
