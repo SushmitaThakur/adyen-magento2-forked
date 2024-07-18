@@ -167,19 +167,3 @@ jobs:
           echo "Submission Response:"
           echo "$submission_response"
           
-          # Check if the response is valid JSON
-          if echo "$submission_response" | jq empty; then
-            echo "Valid JSON response"
-            submission_id=$(echo "$submission_response" | jq -r '.[0].submission_id // empty')
-            if [ -n "$submission_id" ]; then
-              echo "SUBMISSION_ID=$submission_id" >> $GITHUB_OUTPUT
-              echo "Submission ID: $submission_id"
-            else
-              echo "Failed to extract submission ID from the response."
-              exit 1
-            fi
-          else
-            echo "Invalid JSON response. Raw output:"
-            echo "$submission_response"
-            exit 1
-          fi
