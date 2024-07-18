@@ -67,7 +67,7 @@ jobs:
           SESSION_TOKEN=$(echo $response | jq -r '.ust')
           echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
           
-          echo "Session Token Response: $response"
+          # echo "Session Token Response: $response"
           echo "${{ secrets.ADOBE_API_URL }}"
           echo "${{ secrets.ADOBE_CLIENT_ID }}"
           echo "${{ secrets.ADOBE_CLIENT_SECRET }}"
