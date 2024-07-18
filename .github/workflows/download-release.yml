@@ -75,27 +75,27 @@ jobs:
           SESSION_TOKEN=$(echo $response | jq -r '.ust')
           echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
 
-      - name: Use session token to interact with Adobe Commerce API
-        env:
-          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
-        run: |
-          # Example: Get system information
-          response=$(curl -s -X GET \
-          -H "Authorization: Bearer $SESSION_TOKEN" \
-          -H "Content-Type: application/json" \
-          "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/system")
+      # - name: Use session token to interact with Adobe Commerce API
+      #   env:
+      #     SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
+      #   run: |
+      #     # Example: Get system information
+      #     response=$(curl -s -X GET \
+      #     -H "Authorization: Bearer $SESSION_TOKEN" \
+      #     -H "Content-Type: application/json" \
+      #     "https://commercedeveloper-sandbox-api.adobe.com/rest/v1/system")
           
-          echo "API Response:"
-          echo "$response"
+      #     echo "API Response:"
+      #     echo "$response"
           
-          # Check if the response is valid JSON
-          if echo "$response" | jq empty; then
-            echo "Valid JSON response:"
-            echo "$response" | jq .
-          else
-            echo "Invalid JSON response. Raw output:"
-            echo "$response"
-          fi
+      #     # Check if the response is valid JSON
+      #     if echo "$response" | jq empty; then
+      #       echo "Valid JSON response:"
+      #       echo "$response" | jq .
+      #     else
+      #       echo "Invalid JSON response. Raw output:"
+      #       echo "$response"
+      #     fi
 
       - name: Upload and fetch file ID
         id: upload_and_fetch
@@ -156,22 +156,31 @@ jobs:
           echo "Submissions Response:"
           echo "$submissions_response" | jq .
 
-          # Check if there's a submission with the file we just uploaded
-          file_upload_id="${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}"
-          submission_id=$(echo "$submissions_response" | jq -r --arg file_id "$file_upload_id" '.[] | select(.files[] | .file_upload_id == $file_id) | .submission_id')
+          # Check if the response is valid JSON
+          if echo "$submissions_response" | jq empty; then
+            echo "Valid JSON response for submissions list"
 
-          if [ -n "$submission_id" ]; then
-            echo "Submission ID for the uploaded file: $submission_id"
-            echo "SUBMISSION_ID=$submission_id" >> $GITHUB_OUTPUT
+            # Check if there's a submission with the file we just uploaded
+            file_upload_id="${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}"
+            submission_id=$(echo "$submissions_response" | jq -r --arg file_id "$file_upload_id" '.[] | select(.files[] | .file_upload_id == $file_id) | .submission_id')
 
-            # Get details for this specific submission
-            submission_details=$(curl -s -X GET \
-            -H "Authorization: Bearer $SESSION_TOKEN" \
-            -H "Content-Type: application/json" \
-            "${BASE_URL}/rest/v1/extensions/submissions/$submission_id")
+            if [ -n "$submission_id" ]; then
+              echo "Submission ID for the uploaded file: $submission_id"
+              echo "SUBMISSION_ID=$submission_id" >> $GITHUB_OUTPUT
 
-            echo "Submission Details:"
-            echo "$submission_details" | jq .
+              # Get details for this specific submission
+              submission_details=$(curl -s -X GET \
+              -H "Authorization: Bearer $SESSION_TOKEN" \
+              -H "Content-Type: application/json" \
+              "${BASE_URL}/rest/v1/extensions/submissions/$submission_id")
+
+              echo "Submission Details:"
+              echo "$submission_details" | jq .
+            else
+              echo "No submission found for the uploaded file."
+            fi
           else
-            echo "No submission found for the uploaded file."
-          fi
+            echo "Invalid JSON response for submissions list. Raw output:"
+            echo "$submissions_response"
+            exit 1
+          fis
