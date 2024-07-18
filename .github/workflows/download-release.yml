@@ -145,7 +145,7 @@ jobs:
             "long_description": "Your long description here",
             "release_notes": "<!-- Release notes generated using configuration in .github/release.yml at main -->
   
-              ## What's Changed
+              ## What has Changed
               ### Other Changes 🖇️
               * PR Patch Test 12 by @SushmitaThakur in https://github.com/SushmitaThakur/adyen-magento2-forked/pull/35
               * PR 15 Update README.md by @SushmitaThakur in https://github.com/SushmitaThakur/adyen-magento2-forked/pull/37
