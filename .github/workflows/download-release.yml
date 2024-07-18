@@ -51,7 +51,19 @@ jobs:
         with:
           name: processed-release
           path: processed_release.zip
-      
+          
+      - name: Prepare the request payload
+        run: |
+          touch file-payload && \
+          printf "--UNIQUE_BOUNDARY_TOKEN\n" > file-payload && \
+          printf 'Content-Disposition: form-data; name="file[]"; filename="processed-release.zip"\n' >> file-payload && \
+          printf 'Content-Type: application/zip\n' >> file-payload && \
+          printf '\n' >> file-payload && \
+          cat processed-release.zip >> file-payload && \
+          printf '\n' >> file-payload && \
+          printf '\n' >> file-payload && \
+          printf "--UNIQUE_BOUNDARY_TOKEN--" >> file-payload
+        
       - name: Get session token
         id: get_session_token
         env:
@@ -76,17 +88,11 @@ jobs:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           ADOBE_API_URL: ${{ secrets.ADOBE_API_URL }}
         run: |
-          # Check if the file exists
-          if [ ! -f "processed_release.zip" ]; then
-            echo "File not found!"
-            exit 1
-          fi
-      
           # Upload the file
           upload_response=$(curl -X POST \
             -H "Authorization: Bearer $SESSION_TOKEN" \
-            -H "Content-Type: multipart/form-data; boundary=UNIQUE_BOUNDARY_TOKEN" \
-            --data-binary  @processed_release.zip \
+             -H 'Content-Type: multipart/form-data; boundary=UNIQUE_BOUNDARY_TOKEN' \
+             --data-binary @file-payload \
             "${ADOBE_API_URL}/rest/v1/files/uploads")
       
           # Check if the upload was successful
