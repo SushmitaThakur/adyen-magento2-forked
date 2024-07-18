@@ -104,10 +104,10 @@ jobs:
       
           # Extract upload ID from response (assuming JSON response)
           upload_id=$(echo $upload_response | jq -r '.[0].file_upload_id')
-          
-          echo "FILE_UPLOAD_ID=$upload_id" >> $GITHUB_OUTPUT
 
           echo "Upload ID: $upload_id"
+          echo "FILE_UPLOAD_ID=$upload_id" >> $GITHUB_OUTPUT
+          echo "Upload ID: $FILE_UPLOAD_ID"
           
           
 
