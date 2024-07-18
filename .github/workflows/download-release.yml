@@ -69,10 +69,10 @@ jobs:
           echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
           
           # echo "Session Token Response: $response"
-          echo "Github token: ${{ secrets.GITHUB_TOKEN }}"
-          echo "Api url: ${{ secrets.ADOBE_API_URL }}"
-          echo "client id: ${{ secrets.ADOBE_CLIENT_ID }}"
-          echo "client secret: ${{ secrets.ADOBE_CLIENT_SECRET }}"
+          echo "Github token: $GITHUB_TOKEN"
+          echo "Api url: $ADOBE_API_URL"
+          echo "client id: $ADOBE_CLIENT_ID"
+          echo "client secret: $ADOBE_CLIENT_SECRET"
           
           
 
