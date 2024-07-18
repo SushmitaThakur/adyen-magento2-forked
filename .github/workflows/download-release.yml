@@ -167,6 +167,7 @@ jobs:
             "license_type": "apache"
           }]
           EOF
+          )
           
           # Submit the package
           submission_response=$(curl -X POST \
