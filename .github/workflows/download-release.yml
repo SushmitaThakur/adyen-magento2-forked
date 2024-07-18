@@ -76,14 +76,33 @@ jobs:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           ADOBE_API_URL: ${{ secrets.ADOBE_API_URL }}
         run: |
+          # Check if the file exists
+          if [ ! -f "processed_release.zip" ]; then
+            echo "File not found!"
+            exit 1
+          fi
+      
           # Upload the file
           upload_response=$(curl -X POST \
-          -H "Authorization: Bearer $SESSION_TOKEN" \
-          -H "Content-Type: multipart/form-data" \
-          -F "file=@processed_release.zip;type=application/zip" \
-          "${ADOBE_API_URL}/rest/v1/files/uploads")
+            -H "Authorization: Bearer $SESSION_TOKEN" \
+            -H "Content-Type: application/zip" \
+            -F "file=@processed_release.zip" \
+            "${ADOBE_API_URL}/rest/v1/files/uploads")
+      
+          # Check if the upload was successful
+          if echo "$upload_response" | grep -q 'error'; then
+            echo "Upload failed: $upload_response"
+            exit 1
+          else
+            echo "Upload successful: $upload_response"
+          fi
+      
+          # Extract upload ID from response (assuming JSON response)
+          upload_id=$(echo $upload_response | jq -r '.file_upload_id')
           
-          echo "Upload Response: $upload_response"
+          echo "FILE_UPLOAD_ID=$upload_id" >> $GITHUB_OUTPUT
+
+          echo "Upload ID: $FILE_UPLOAD_ID"
           
           
 
