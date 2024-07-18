@@ -63,13 +63,27 @@ jobs:
           -u "${ADOBE_CLIENT_ID}:${ADOBE_CLIENT_SECRET}" \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
-          ${{ secrets.ADOBE_API_URL }}/rest/v1/app/session/token)
+          ${ADOBE_API_URL}/rest/v1/app/session/token)
 
           SESSION_TOKEN=$(echo $response | jq -r '.ust')
           echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
           
           echo "Session Token Response: $response"
 
+      - name: Upload zip to adobe and get upload id
+        id: upload_and_fetch
+        env:
+          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
+          ADOBE_API_URL: ${{ secrets.ADOBE_API_URL }}
+        run: |
+          # Upload the file
+          upload_response=$(curl -X POST \
+          -H "Authorization: Bearer $SESSION_TOKEN" \
+          -H "Content-Type: multipart/form-data" \
+          -F "file=@processed_release.zip;type=application/zip" \
+          "${ADOBE_API_URL}/rest/v1/files/uploads")
+          
+          echo "Upload Response: $upload_response"
           
           
 
