@@ -107,7 +107,7 @@ jobs:
           
           echo "FILE_UPLOAD_ID=$upload_id" >> $GITHUB_OUTPUT
 
-          echo "Upload ID: $FILE_UPLOAD_ID"
+          echo "Upload ID: ${FILE_UPLOAD_ID}"
           
           
 
