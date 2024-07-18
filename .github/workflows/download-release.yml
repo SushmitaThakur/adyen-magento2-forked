@@ -66,7 +66,7 @@ jobs:
       - name: Get session token
         id: get_session_token
         env:
-          ADOBE_API_URL: ${{ secrets.ADOBE_API_URL }}
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
           ADOBE_CLIENT_ID: ${{ secrets.ADOBE_CLIENT_ID }}
           ADOBE_CLIENT_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
         run: |
@@ -108,8 +108,78 @@ jobs:
           echo "Upload ID: $upload_id"
           echo "FILE_UPLOAD_ID=$upload_id" >> $GITHUB_OUTPUT
           
-      - name: Upload package
+      - name: Submit package
+        id: submit_package
+        env:
+          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
+          FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
         run: |
-          echo "Upload ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}"
+          echo "Debug: First 10 chars of SESSION_TOKEN=${SESSION_TOKEN:0:10}..."
+          echo "Debug: FILE_UPLOAD_ID=$FILE_UPLOAD_ID"
           
-
+          # Submit the package
+          submission_response=$(curl -v -X POST \
+          -H "Authorization: Bearer $SESSION_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '[{
+            "action": {
+              "technical": "submit",
+              "marketing": "submit"
+            },
+            "type": "extension",
+            "platform": "M2",
+            "version_compatibility": [
+              {
+                "edition": "CE",
+                "versions": ["2.4"]
+              },
+              {
+                "edition": "EE",
+                "versions": ["2.4"]
+              },
+              {
+                "edition": "ECE",
+                "versions": ["2.4"]
+              }
+            ],
+            "name": "Magento Automation Test ",
+            "short_description": "A brief description of your extension",
+            "long_description": "Your long description here",
+            "release_notes": "${{ steps.fetch_release.outputs.RELEASE_NOTES }}",
+            "version": "1.0.0",
+            "artifact": {
+              "file_upload_id": "'$FILE_UPLOAD_ID'"
+            },
+            "documentation_artifacts": {
+              "user": {
+                "file_upload_id": "'$FILE_UPLOAD_ID'"
+              }
+            },
+            "categories": [
+              "//Extensions//Your Category"
+            ],
+            "license_type": "apache",
+            "sku": "your-vendor/your-module-name"
+          }]' \
+          "${BASE_URL}/rest/v1/products/packages")
+          
+          echo "Submission Response:"
+          echo "$submission_response"
+          
+          # Check if the response is valid JSON
+          if echo "$submission_response" | jq empty; then
+            echo "Valid JSON response"
+            submission_id=$(echo "$submission_response" | jq -r '.[0].submission_id // empty')
+            if [ -n "$submission_id" ]; then
+              echo "SUBMISSION_ID=$submission_id" >> $GITHUB_OUTPUT
+              echo "Submission ID: $submission_id"
+            else
+              echo "Failed to extract submission ID from the response."
+              exit 1
+            fi
+          else
+            echo "Invalid JSON response. Raw output:"
+            echo "$submission_response"
+            exit 1
+          fi
