@@ -63,10 +63,14 @@ jobs:
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
           https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token)
-          
-          echo "Session Token Response: $response"
-          echo "$ADOBE_CLIENT_ID"
-          echo "$ADOBE_CLIENT_SECRET"
+
           SESSION_TOKEN=$(echo $response | jq -r '.ust')
           echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
+          
+          echo "Session Token Response: $response"
+          echo "${{ secrets.ADOBE_API_URL }}"
+          echo "${{ secrets.ADOBE_CLIENT_ID }}"
+          echo "${{ secrets.ADOBE_CLIENT_SECRET }}"
+          
+          
 
