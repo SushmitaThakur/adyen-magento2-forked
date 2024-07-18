@@ -59,7 +59,7 @@ jobs:
           echo 'Content-Disposition: form-data; name="file[]"; filename="processed-release.zip"' >> file-payload && \
           echo 'Content-Type: application/zip' >> file-payload && \
           echo '' >> file-payload && \
-          cat processed-release.zip >> file-payload && \
+          cat processed_release.zip >> file-payload && \
           echo '' >> file-payload && \
           echo "--UNIQUE_BOUNDARY_TOKEN--" >> file-payload
         
