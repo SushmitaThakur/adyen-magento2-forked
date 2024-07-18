@@ -55,7 +55,7 @@ jobs:
       - name: Prepare the request payload
         run: |
           touch file-payload && \
-          printf "--UNIQUE_BOUNDARY_TOKEN\n" > file-payload && \
+          printf '--UNIQUE_BOUNDARY_TOKEN\n' > file-payload && \
           printf 'Content-Disposition: form-data; name="file[]"; filename="processed-release.zip"\n' >> file-payload && \
           printf 'Content-Type: application/zip\n' >> file-payload && \
           printf '\n' >> file-payload && \
