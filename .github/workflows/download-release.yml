@@ -85,8 +85,8 @@ jobs:
           # Upload the file
           upload_response=$(curl -X POST \
             -H "Authorization: Bearer $SESSION_TOKEN" \
-            -H "Content-Type: application/zip" \
-            -F "file=@processed_release.zip" \
+            -H "Content-Type: multipart/form-data; boundary=UNIQUE_BOUNDARY_TOKEN" \
+            --data-binary  @processed_release.zip \
             "${ADOBE_API_URL}/rest/v1/files/uploads")
       
           # Check if the upload was successful
