@@ -1,4 +1,3 @@
-
 name: Download Release and Create Archive
 
 on:
@@ -65,7 +64,7 @@ jobs:
           ADOBE_CLIENT_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
         run: |
           response=$(curl -X POST \
-          -u 'VKIMCVQ2ZN:78c24c7ab3ba4283b72859147dbbc73581fdf114' \
+          -u '${{ secrets.ADOBE_CLIENT_ID }}:${{ secrets.ADOBE_CLIENT_SECRET }}' \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
           https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token)
@@ -120,6 +119,7 @@ jobs:
             echo "$files_response"
             exit 1
           fi
+
       - name: Submit package
         id: submit_package
         env:
@@ -127,6 +127,9 @@ jobs:
           BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
         run: |
+          echo "Debug: First 10 chars of SESSION_TOKEN=${SESSION_TOKEN:0:10}..."
+          echo "Debug: FILE_UPLOAD_ID=$FILE_UPLOAD_ID"
+          
           # Submit the package
           submission_response=$(curl -v -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
@@ -158,11 +161,11 @@ jobs:
             "release_notes": "${{ steps.fetch_release.outputs.RELEASE_NOTES }}",
             "version": "1.0.0",
             "artifact": {
-              "file_upload_id": "$FILE_UPLOAD_ID"
+              "file_upload_id": "'$FILE_UPLOAD_ID'"
             },
             "documentation_artifacts": {
               "user": {
-                "file_upload_id": "$FILE_UPLOAD_ID"
+                "file_upload_id": "'$FILE_UPLOAD_ID'"
               }
             },
             "categories": [
@@ -211,4 +214,3 @@ jobs:
           echo "$submission_details" | jq .
           status=$(echo "$submission_details" | jq -r '.eqp_status')
           echo "Current submission status: $status"
-          fis
