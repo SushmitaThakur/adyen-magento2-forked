@@ -82,7 +82,7 @@ jobs:
           BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
         run: |
           # Upload the file
-          upload_response=$(curl -v -X POST \
+          upload_response=$(curl -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: multipart/form-data" \
           -F "file=@processed_release.zip;type=application/zip" \
