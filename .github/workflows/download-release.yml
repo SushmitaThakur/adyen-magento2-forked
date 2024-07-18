@@ -157,7 +157,7 @@ jobs:
           echo "$submissions_response" | jq .
 
           # Check if there's a submission with the file we just uploaded
-          file_upload_id="${{ steps.upload_to_adobe.outputs.FILE_UPLOAD_ID }}"
+          file_upload_id="${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}"
           submission_id=$(echo "$submissions_response" | jq -r --arg file_id "$file_upload_id" '.[] | select(.files[] | .file_upload_id == $file_id) | .submission_id')
 
           if [ -n "$submission_id" ]; then
