@@ -1,12 +1,13 @@
-name: Download Release and Create Archive
+name: Marketplace Automation
 
 on:
   workflow_dispatch:
   push:
 
 jobs:
-  download-and-archive:
+  marketplace-automation:
     runs-on: ubuntu-latest
+    environment: internal 
 
     steps:
       - name: Checkout repository
@@ -17,23 +18,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          response=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/latest")
-          LATEST_RELEASE_URL=$(echo $response | jq -r '.zipball_url')
-          RELEASE_NOTES=$(echo $response | jq -r '.body')
-          echo "LATEST_RELEASE_URL=$LATEST_RELEASE_URL" >> $GITHUB_OUTPUT
+          response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+          release_url=$(echo $response | jq -r '.zipball_url')
+          release_notes=$(echo $response | jq -r '.body')
+          echo "LATEST_RELEASE_URL=$release_url" >> $GITHUB_OUTPUT
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
-          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          echo "$release_notes" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          echo "Latest Release URL: $LATEST_RELEASE_URL"
-          echo "Release Notes: $RELEASE_NOTES"
-
+          echo "Latest Release URL: $release_url"
+          echo "Release Notes: $release_notes"
       - name: Download the latest release
         run: |
           curl -L ${{ steps.fetch_release.outputs.LATEST_RELEASE_URL }} -o source.zip
           unzip source.zip
           rm source.zip
-
       - name: Create Archive
         uses: thedoctor0/zip-release@0.7.5
         with:
@@ -44,92 +43,73 @@ jobs:
       - name: List files for verification
         run: |
           ls -la
-
-      - name: Print release notes
-        run: |
-          echo "Release Notes:"
-          echo "${{ steps.fetch_release.outputs.RELEASE_NOTES }}"
-
       - name: Upload processed release as artifact
         uses: actions/upload-artifact@v4
         with:
           name: processed-release
           path: processed_release.zip
-      
+          
+      - name: Prepare the request payload
+        run: |
+          touch file-payload && \
+          echo "--UNIQUE_BOUNDARY_TOKEN" > file-payload && \
+          echo 'Content-Disposition: form-data; name="file[]"; filename="processed-release.zip"' >> file-payload && \
+          echo 'Content-Type: application/zip' >> file-payload && \
+          echo '' >> file-payload && \
+          cat processed_release.zip >> file-payload && \
+          echo '' >> file-payload && \
+          echo "--UNIQUE_BOUNDARY_TOKEN--" >> file-payload
+        
       - name: Get session token
         id: get_session_token
         env:
-          ADOBE_API_URL: ${{ secrets.ADOBE_API_URL }}
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
           ADOBE_CLIENT_ID: ${{ secrets.ADOBE_CLIENT_ID }}
           ADOBE_CLIENT_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
         run: |
           response=$(curl -X POST \
-          -u '${{ secrets.ADOBE_CLIENT_ID }}:${{ secrets.ADOBE_CLIENT_SECRET }}' \
+          -u "${ADOBE_CLIENT_ID}:${ADOBE_CLIENT_SECRET}" \
           -H 'Content-Type: application/json' \
           -d '{ "grant_type" : "session" }' \
-          https://commercedeveloper-sandbox-api.adobe.com/rest/v1/app/session/token)
-          
-          echo "Session Token Response: $response"
-          
+          ${BASE_URL}/rest/v1/app/session/token)
           SESSION_TOKEN=$(echo $response | jq -r '.ust')
           echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
-
-      - name: Upload and fetch file ID
+          
+          echo "Session Token Response: $response"
+      - name: Upload zip to adobe and get upload id
         id: upload_and_fetch
         env:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
-          BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
         run: |
           # Upload the file
           upload_response=$(curl -X POST \
-          -H "Authorization: Bearer $SESSION_TOKEN" \
-          -H "Content-Type: multipart/form-data" \
-          -F "file=@processed_release.zip;type=application/zip" \
-          "${BASE_URL}/rest/v1/files/uploads")
-          
-          echo "Upload Response:"
-          echo "$upload_response"
-          echo "Session token: $SESSION_TOKEN"
-          
-          # Fetch all files
-          files_response=$(curl -s -X GET \
-          -H "Authorization: Bearer $SESSION_TOKEN" \
-          -H "Content-Type: application/json" \
-          "${BASE_URL}/rest/v1/files/uploads")
-          
-          echo "Files Response:"
-          echo "$files_response"
-          
-          # Check if the response is valid JSON
-          if echo "$files_response" | jq empty; then
-            echo "Valid JSON response for files list"
-            
-            # Extract the most recent file_upload_id
-            file_upload_id=$(echo "$files_response" | jq -r 'sort_by(.file_upload_id) | reverse | .[0].file_upload_id')
-            
-            if [ ! -z "$file_upload_id" ]; then
-              echo "Most recent File upload ID: $file_upload_id"
-              echo "FILE_UPLOAD_ID=$file_upload_id" >> $GITHUB_OUTPUT
-            else
-              echo "No file upload IDs found in the response."
-              exit 1
-            fi
-          else
-            echo "Invalid JSON response for files list. Raw output:"
-            echo "$files_response"
+            -H "Authorization: Bearer $SESSION_TOKEN" \
+             -H 'Content-Type: multipart/form-data; boundary=UNIQUE_BOUNDARY_TOKEN' \
+             --data-binary @file-payload \
+            "${BASE_URL}/rest/v1/files/uploads")
+      
+          # Check if the upload was successful
+          if echo "$upload_response" | grep -q 'error'; then
+            echo "Upload failed: $upload_response"
             exit 1
+          else
+            echo "Upload successful: $upload_response"
           fi
+      
+          # Extract upload ID from response (assuming JSON response)
+          upload_id=$(echo $upload_response | jq -r '.[0].file_upload_id')
 
+          echo "Upload ID: $upload_id"
+          echo "FILE_UPLOAD_ID=$upload_id" >> $GITHUB_OUTPUT
+          
       - name: Submit package
         id: submit_package
         env:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
-          BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
-        run: |
-          echo "Debug: First 10 chars of SESSION_TOKEN=${SESSION_TOKEN:0:10}..."
-          echo "Debug: FILE_UPLOAD_ID=$FILE_UPLOAD_ID"
-          
+        run: |          
           # Submit the package
           submission_response=$(curl -v -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
@@ -155,11 +135,11 @@ jobs:
                 "versions": ["2.4"]
               }
             ],
-            "name": "Your Extension Name",
+            "name": "Magento Automation Test ",
             "short_description": "A brief description of your extension",
             "long_description": "Your long description here",
-            "release_notes": "${{ steps.fetch_release.outputs.RELEASE_NOTES }}",
-            "version": "1.0.0",
+            "release_notes": "test_note",
+            "version": "1.2.0",
             "artifact": {
               "file_upload_id": "'$FILE_UPLOAD_ID'"
             },
@@ -172,45 +152,9 @@ jobs:
               "//Extensions//Your Category"
             ],
             "license_type": "apache",
-            "sku": "your-vendor/your-module-name"
+            "sku": "adyen/dummy-module"
           }]' \
           "${BASE_URL}/rest/v1/products/packages")
           
           echo "Submission Response:"
           echo "$submission_response"
-          
-          # Check if the response is valid JSON
-          if echo "$submission_response" | jq empty; then
-            echo "Valid JSON response"
-            submission_id=$(echo "$submission_response" | jq -r '.[0].submission_id // empty')
-            if [ -n "$submission_id" ]; then
-              echo "SUBMISSION_ID=$submission_id" >> $GITHUB_OUTPUT
-              echo "Submission ID: $submission_id"
-            else
-              echo "Failed to extract submission ID from the response."
-              exit 1
-            fi
-          else
-            echo "Invalid JSON response. Raw output:"
-            echo "$submission_response"
-            exit 1
-          fi
-      - name: Check submission status
-        id: check_status
-        env:
-          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
-          BASE_URL: "https://commercedeveloper-sandbox-api.adobe.com"
-          SUBMISSION_ID: ${{ steps.submit_package.outputs.SUBMISSION_ID }}
-        run: |
-          if [ -z "$SUBMISSION_ID" ]; then
-            echo "No submission ID found. Skipping status check."
-            exit 0
-          fi
-          submission_details=$(curl -s -X GET \
-          -H "Authorization: Bearer $SESSION_TOKEN" \
-          -H "Content-Type: application/json" \
-          "${BASE_URL}/rest/v1/products/packages/$SUBMISSION_ID")
-          echo "Submission Details:"
-          echo "$submission_details" | jq .
-          status=$(echo "$submission_details" | jq -r '.eqp_status')
-          echo "Current submission status: $status"
