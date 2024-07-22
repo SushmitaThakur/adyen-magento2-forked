@@ -141,11 +141,11 @@ jobs:
             "release_notes": "test_note",
             "version": "1.2.0",
             "artifact": {
-              "file_upload_id": "'$FILE_UPLOAD_ID'"
+              "file_upload_id": "669e1d57a3f212.43784594.0"
             },
             "documentation_artifacts": {
               "user": {
-                "file_upload_id": "'$FILE_UPLOAD_ID'"
+                "file_upload_id": "669e1d57a3f212.43784594.0"
               }
             },
             "categories": [
