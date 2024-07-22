@@ -114,7 +114,8 @@ jobs:
           submission_response=$(curl -v -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: application/json" \
-          -d '[{
+          -d '[
+          {
             "action": {
               "technical": "submit"
             },
@@ -152,7 +153,8 @@ jobs:
             ],
             "license_type": "apache",
             "sku": "adyen/dummy-module"
-          }]' \
+          }
+          ]' \
           "${BASE_URL}/rest/v1/products/packages")
           
           echo "Submission Response:"
