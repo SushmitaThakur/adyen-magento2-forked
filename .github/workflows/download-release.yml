@@ -13,6 +13,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # will work for live only
+      - name: Extract Tag Name
+        id: extract_tag
+        run: |
+          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "The tag name is $TAG_NAME"
+
+      - name: Use the Tag Name
+        run: |
+          echo "Using the tag name: $TAG_NAME"
+
       - name: Fetch the latest release
         id: fetch_release
         env:
@@ -21,13 +32,16 @@ jobs:
           response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/latest")
           release_url=$(echo $response | jq -r '.zipball_url')
           release_notes=$(echo $response | jq -r '.body')
+          release_tagname=$(echo $response | jq -r '.tagname')
           echo "LATEST_RELEASE_URL=$release_url" >> $GITHUB_OUTPUT
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
           echo "$release_notes" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$release_tagname" >> $GITHUB_ENV
           
           echo "Latest Release URL: $release_url"
           echo "Release Notes: $release_notes"
+          echo "Tag name:release_tagname"
 
       - name: Download the latest release
         run: |
