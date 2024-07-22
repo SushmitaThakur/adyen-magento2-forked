@@ -3,6 +3,8 @@ name: Marketplace Automation
 on:
   workflow_dispatch:
   push:
+  release:
+    types: [published]
 
 jobs:
   marketplace-automation:
