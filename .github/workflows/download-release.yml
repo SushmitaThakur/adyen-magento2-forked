@@ -17,7 +17,7 @@ jobs:
       - name: Extract Tag Name
         id: extract_tag
         run: |
-          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           echo "The tag name is $TAG_NAME"
 
       - name: Use the Tag Name
@@ -37,7 +37,7 @@ jobs:
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
           echo "$release_notes" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          echo "TAG_NAME=$release_tagname" >> $GITHUB_ENV
+          echo "TAG_NAME=$release_tagname" >> $GITHUB_OUTPUT
           
           echo "Latest Release URL: $release_url"
           echo "Release Notes: $release_notes"
