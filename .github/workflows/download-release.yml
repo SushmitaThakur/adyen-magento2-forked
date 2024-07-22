@@ -33,6 +33,12 @@ jobs:
           release_url=$(echo $response | jq -r '.zipball_url')
           release_notes=$(echo $response | jq -r '.body')
           release_tagname=$(echo $response | jq -r '.tag_name')
+
+          # Remove 'v' prefix if it exists
+          if [[ $release_tagname == v* ]]; then
+            release_tagname=${release_tagname#v}
+          fi
+          
           echo "LATEST_RELEASE_URL=$release_url" >> $GITHUB_OUTPUT
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
           echo "$release_notes" >> $GITHUB_OUTPUT
