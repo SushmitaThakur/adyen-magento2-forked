@@ -41,7 +41,7 @@ jobs:
           
           echo "Latest Release URL: $release_url"
           echo "Release Notes: $release_notes"
-          echo "Tag name:release_tagname"
+          echo "Tag name: $release_tagname"
 
       - name: Download the latest release
         run: |
