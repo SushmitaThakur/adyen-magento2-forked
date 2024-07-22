@@ -111,13 +111,12 @@ jobs:
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
         run: |          
           # Submit the package
-          submission_response=$(curl -v -X POST \
+          submission_response=$(curl -X POST \
           -H "Authorization: Bearer $SESSION_TOKEN" \
           -H "Content-Type: application/json" \
           -d '[{
             "action": {
-              "technical": "submit",
-              "marketing": "submit"
+              "technical": "submit"
             },
             "type": "extension",
             "platform": "M2",
