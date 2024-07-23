@@ -131,10 +131,14 @@ jobs:
           echo "FILE_UPLOAD_ID=$upload_id" >> $GITHUB_OUTPUT
           
       - name: Prepare JSON Payload
+        env:
+          VERSION = ${{ steps.fetch_release.outputs.TAG_NAME }}
+          FILE_UPLOAD_ID = ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
         run: |
           # Read the JSON template and replace placeholders with actual values
-          sed "s/\${VERSION}/${VERSION}/g" .github/workflows/payload-template.json | sed "s/\${FILE_UPLOAD_ID}/${FILE_UPLOAD_ID}/g" > .github/workflows/payload.json
-          cat .github/workflows/payload-template.json
+          cp .github/workflows/payload-template.json updated-payload.json
+          sed "s/\${VERSION}/${VERSION}/g" updated-payload.json | sed "s/\${FILE_UPLOAD_ID}/${FILE_UPLOAD_ID}/g" > .updated-payload.json
+          cat updated-payload.json
           
       - name: Submit the package
         env:
