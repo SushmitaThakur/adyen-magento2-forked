@@ -124,74 +124,28 @@ jobs:
             echo "Upload successful: $upload_response"
           fi
       
-          # Extract upload ID from response (assuming JSON response)
+          # Extract upload ID from JSON response
           upload_id=$(echo $upload_response | jq -r '.[0].file_upload_id')
 
           echo "Upload ID: $upload_id"
           echo "FILE_UPLOAD_ID=$upload_id" >> $GITHUB_OUTPUT
           
-      - name: Submit package
-        id: submit_package
-        env:
-          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
-          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
-          FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
-        run: |          
-          # Submit the package
-          submission_response=$(curl -v -X POST \
-          -H "Authorization: Bearer $SESSION_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d '[{
-            "action": {
-              "technical": "submit",
-              "marketing": "submit"
-            },
-            "type": "extension",
-            "platform": "M2",
-            "version_compatibility": [
-              {
-                "edition": "CE",
-                "versions": ["2.4"]
-              },
-              {
-                "edition": "EE",
-                "versions": ["2.4"]
-              },
-              {
-                "edition": "ECE",
-                "versions": ["2.4"]
-              }
-            ],
-            "name": "Magento Automation Test ",
-            "short_description": "A brief description of your extension",
-            "long_description": "Your long description here",
-            "release_notes": "<!-- Release notes generated using configuration in .github/release.yml at main -->
-  
-              ## What has Changed
-              ### Other Changes 🖇️
-              * PR Patch Test 12 by @SushmitaThakur in https://github.com/SushmitaThakur/adyen-magento2-forked/pull/35
-              * PR 15 Update README.md by @SushmitaThakur in https://github.com/SushmitaThakur/adyen-magento2-forked/pull/37
-              * Release v10.1.0 by @github-actions in https://github.com/SushmitaThakur/adyen-magento2-forked/pull/36
-  
-  
-              **Full Changelog**: https://github.com/SushmitaThakur/adyen-magento2-forked/compare/v10.0.3...v10.1.0",
-            "version": "1.2.0",
-            "artifact": {
-              "file_upload_id": "'$FILE_UPLOAD_ID'"
-            },
-            "documentation_artifacts": {
-              "user": {
-                "file_upload_id": "'$FILE_UPLOAD_ID'"
-              }
-            },
-            "categories": [
-              "//Extensions//Your Category"
-            ],
-            "license_type": "apache",
-            "sku": "adyen/dummy-module"
-          }]' \
-          "${BASE_URL}/rest/v1/products/packages")
+      - name: Prepare JSON Payload
+        run: |
+          # Read the JSON template and replace placeholders with actual values
+          sed "s/\${VERSION}/${VERSION}/g" payload-template.json | sed "s/\${FILE_UPLOAD_ID}/${FILE_UPLOAD_ID}/g" > payload.json
           
+      - name: Submit the package
+        env:
+          SESSION_TOKEN: ${{ secrets.SESSION_TOKEN }}
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
+        run: |
+          submission_response=$(curl -v -X POST \
+            -H "Authorization: Bearer $SESSION_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data @payload.json \
+            "${BASE_URL}/rest/v1/products/packages")
+
           echo "Submission Response:"
           echo "$submission_response"
           
