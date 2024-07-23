@@ -137,7 +137,7 @@ jobs:
           
       - name: Submit the package
         env:
-          SESSION_TOKEN: ${{ secrets.SESSION_TOKEN }}
+          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
         run: |
           submission_response=$(curl -v -X POST \
