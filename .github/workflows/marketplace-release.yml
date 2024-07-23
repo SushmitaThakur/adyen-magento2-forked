@@ -133,7 +133,7 @@ jobs:
       - name: Prepare JSON Payload
         run: |
           # Read the JSON template and replace placeholders with actual values
-          sed "s/\${VERSION}/${VERSION}/g" payload-template.json | sed "s/\${FILE_UPLOAD_ID}/${FILE_UPLOAD_ID}/g" > payload.json
+          sed "s/\${VERSION}/${VERSION}/g" .github/workflows/payload-template.json | sed "s/\${FILE_UPLOAD_ID}/${FILE_UPLOAD_ID}/g" > .github/workflows/payload.json
           
       - name: Submit the package
         env:
@@ -143,7 +143,7 @@ jobs:
           submission_response=$(curl -v -X POST \
             -H "Authorization: Bearer $SESSION_TOKEN" \
             -H "Content-Type: application/json" \
-            --data @payload.json \
+            --data @.github/workflows/payload.json \
             "${BASE_URL}/rest/v1/products/packages")
 
           echo "Submission Response:"
