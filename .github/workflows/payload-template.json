@@ -1,0 +1,41 @@
+[
+  {
+    "action": {
+      "technical": "submit"
+    },
+    "type": "extension",
+    "platform": "M2",
+    "version_compatibility": [
+      {
+        "edition": "CE",
+        "versions": ["2.4"]
+      },
+      {
+        "edition": "EE",
+        "versions": ["2.4"]
+      },
+      {
+        "edition": "ECE",
+        "versions": ["2.4"]
+      }
+    ],
+    "name": "Magento Automation Test ",
+    "short_description": "A brief description of your extension",
+    "long_description": "Your long description here",
+    "release_notes": "test_note",
+    "version": "${VERSION}",
+    "artifact": {
+      "file_upload_id": "${FILE_UPLOAD_ID}"
+    },
+    "documentation_artifacts": {
+      "user": {
+        "file_upload_id": "${FILE_UPLOAD_ID}"
+      }
+    },
+    "categories": [
+      "//Extensions//dummy"
+    ],
+    "license_type": "apache",
+    "sku": "adyen/dummy-module"
+  }
+]
