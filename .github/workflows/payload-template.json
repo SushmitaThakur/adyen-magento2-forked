@@ -19,10 +19,8 @@
         "versions": ["2.4"]
       }
     ],
-    "name": "Magento Automation Test ",
-    "short_description": "A brief description of your extension",
-    "long_description": "Your long description here",
-    "release_notes": "test_note",
+    "name": "dummy",
+    "release_notes": "${RELEASE_NOTES}",
     "version": "${VERSION}",
     "artifact": {
       "file_upload_id": "${FILE_UPLOAD_ID}"
