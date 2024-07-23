@@ -21,13 +21,13 @@
     ],
     "name": "dummy",
     "release_notes": "RELEASE_NOTES",
-    "version": "${VERSION}",
+    "version": "VERSION",
     "artifact": {
-      "file_upload_id": "${FILE_UPLOAD_ID}"
+      "file_upload_id": "FILE_UPLOAD_ID"
     },
     "documentation_artifacts": {
       "user": {
-        "file_upload_id": "${FILE_UPLOAD_ID}"
+        "file_upload_id": "USERGUIDE_FILE_ID"
       }
     },
     "categories": [
