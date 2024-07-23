@@ -150,7 +150,7 @@ jobs:
           submission_response=$(curl -X POST \
             -H "Authorization: Bearer $SESSION_TOKEN" \
             -H "Content-Type: application/json" \
-            --data @.github/workflows/payload.json \
+            --data-binary @updated-payload.json \
             "${BASE_URL}/rest/v1/products/packages")
 
           echo "Submission Response:"
