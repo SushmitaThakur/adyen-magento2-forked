@@ -140,7 +140,12 @@ jobs:
         run: |
           # Read the JSON template and replace placeholders with actual values
           cp .github/workflows/payload-template.json updated-payload.json
-         
+          
+          # Replace single quotes with escaped single quotes
+          escaped_text=$(echo "${THIS_RELEASE_NOTES}" | sed "s/'/\\\\'/g")
+          # Print the result
+          echo "$escaped_text"
+          
           # Replace placeholders with actual values
           sed -i "s/\${VERSION}/${NEW_VERSION}/g" updated-payload.json
           sed -i "s/\${FILE_UPLOAD_ID}/${FILE_UPLOAD_ID}/g" updated-payload.json
