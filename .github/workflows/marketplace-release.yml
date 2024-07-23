@@ -149,7 +149,7 @@ jobs:
           # Replace placeholders with actual values
           sed -i "s/\${VERSION}/${NEW_VERSION}/g" updated-payload.json
           sed -i "s/\${FILE_UPLOAD_ID}/${FILE_UPLOAD_ID}/g" updated-payload.json
-          sed -i '' "s|RELEASE_NOTES|${THIS_RELEASE_NOTES}|g" updated-payload.json
+          sed -i '' "s|RELEASE_NOTES|${THIS_RELEASE_NOTES}|" updated-payload.json
 
           cat updated-payload.json
           
