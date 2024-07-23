@@ -31,7 +31,7 @@
       }
     },
     "categories": [
-      "//Extensions//dummy"
+      "//Payments & Security//Payment Integration"
     ],
     "license_type": "apache",
     "sku": "adyen/dummy-module"
