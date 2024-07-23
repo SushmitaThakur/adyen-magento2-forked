@@ -136,18 +136,15 @@ jobs:
           #NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
           NEW_VERSION: "10.1.5"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
-          RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
+          THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
         run: |
           # Read the JSON template and replace placeholders with actual values
           cp .github/workflows/payload-template.json updated-payload.json
          
-          # Escape the release notes for use in sed
-          escaped_release_notes=$(printf '%s\n' "${RELEASE_NOTES}" | sed 's/[^^]/[&]/g; s/\^/\\^/g; s/\$/\\$/g; s/\[/\\[/g; s/\]/\\]/g; s/\*/\\*/g; s/\./\\./g; s/\?/\\?/g; s/\\/\\\\/g; s/\n/\\n/g')
-
           # Replace placeholders with actual values
           sed -i "s/\${VERSION}/${NEW_VERSION}/g" updated-payload.json
           sed -i "s/\${FILE_UPLOAD_ID}/${FILE_UPLOAD_ID}/g" updated-payload.json
-          sed -i "s/\${RELEASE_NOTES}/${escaped_release_notes}/g" updated-payload.json
+          sed -i "s/\${RELEASE_NOTES}/${THIS_RELEASE_NOTES}/g" updated-payload.json
 
           cat updated-payload.json
           
@@ -169,6 +166,9 @@ jobs:
               "${BASE_URL}/rest/v1/products/packages")
       
             echo "HTTP Status Code: $response"
+            # for debug
+            cat response_body.json
+            
             if [ "$response" -eq 200 ]; then
               echo "Submission successful"
               break
