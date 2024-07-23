@@ -152,20 +152,20 @@ jobs:
           max_attempts=3
           sleep_duration=5
           while [ $attempt -lt $max_attempts ]; do
-            submission_response=$(curl -X POST \
+            # Use -w to capture HTTP status code and -o to discard the response body
+            response=$(curl -s -o response_body.json -w "%{http_code}" \
+              -X POST \
               -H "Authorization: Bearer $SESSION_TOKEN" \
               -H "Content-Type: application/json" \
               --data @updated-payload.json \
               "${BASE_URL}/rest/v1/products/packages")
       
-            echo "Submission Response: $submission_response"
-            response_code=$(echo "$submission_response" | jq -r '.code')
-      
-            if [ "$response_code" -eq 200 ]; then
+            echo "HTTP Status Code: $response"
+            if [ "$response" -eq 200 ]; then
               echo "Submission successful"
               break
             else
-              echo "Submission failed with response code $response_code. Retrying in $sleep_duration seconds..."
+              echo "Submission failed with response code $response. Retrying in $sleep_duration seconds..."
               attempt=$((attempt + 1))
               if [ $attempt -lt $max_attempts ]; then
                 sleep $sleep_duration
