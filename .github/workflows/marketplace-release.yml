@@ -143,7 +143,7 @@ jobs:
           cp .github/workflows/payload-template.json updated-payload.json
           
           # # Replace single quotes with escaped single quotes
-          # escaped_notes=$(echo "${THIS_RELEASE_NOTES}" | sed "s/'/\\\\'/g")
+          escaped_notes=$(echo "${THIS_RELEASE_NOTES}" | sed "s/'/\\\\'/g")
           # Print the result
           echo "$escaped_notes"
           
@@ -151,7 +151,7 @@ jobs:
           sed -i "s/VERSION/${NEW_VERSION}/g" updated-payload.json
           sed -i "s/FILE_UPLOAD_ID/${FILE_UPLOAD_ID}/g" updated-payload.json
           sed -i "s/USERGUIDE_FILE_ID/${USERGUIDE_FILE_ID}/g" updated-payload.json
-          sed -i '' "s|RELEASE_NOTES|${THIS_RELEASE_NOTES}|" updated-payload.json
+          sed -i "s|RELEASE_NOTES|$escaped_notes|" updated-payload.json
 
           cat updated-payload.json
           
