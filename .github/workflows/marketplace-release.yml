@@ -134,13 +134,14 @@ jobs:
         run: |
           # Read the JSON template and replace placeholders with actual values
           sed "s/\${VERSION}/${VERSION}/g" .github/workflows/payload-template.json | sed "s/\${FILE_UPLOAD_ID}/${FILE_UPLOAD_ID}/g" > .github/workflows/payload.json
+          cat .github/workflows/payload-template.json
           
       - name: Submit the package
         env:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
         run: |
-          submission_response=$(curl -v -X POST \
+          submission_response=$(curl -X POST \
             -H "Authorization: Bearer $SESSION_TOKEN" \
             -H "Content-Type: application/json" \
             --data @.github/workflows/payload.json \
