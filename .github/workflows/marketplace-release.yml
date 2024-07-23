@@ -147,6 +147,8 @@ jobs:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
         run: |
+          cat $SESSION_TOKEN
+          cat "${BASE_URL}/rest/v1/products/packages"
           submission_response=$(curl -X POST \
             -H "Authorization: Bearer $SESSION_TOKEN" \
             -H "Content-Type: application/json" \
