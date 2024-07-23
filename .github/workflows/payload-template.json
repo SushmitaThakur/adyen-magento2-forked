@@ -20,7 +20,7 @@
       }
     ],
     "name": "dummy",
-    "release_notes": "${RELEASE_NOTES}",
+    "release_notes": "RELEASE_NOTES",
     "version": "${VERSION}",
     "artifact": {
       "file_upload_id": "${FILE_UPLOAD_ID}"
