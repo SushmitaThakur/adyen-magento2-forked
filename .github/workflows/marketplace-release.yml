@@ -134,7 +134,7 @@ jobs:
         id: prepare_payload
         env:
           #NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
-          NEW_VERSION: "11.0.4"
+          NEW_VERSION: "11.0.5"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
           THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
           USERGUIDE_FILE_ID: "657c7af4003a79.72655930.0"
@@ -182,18 +182,17 @@ jobs:
               if [ -n "$code" ]; then
                 echo "$code"
                 echo "Attempt = $attempt"
-                break
               fi    
+              
+              attempt=$((attempt + 1))
+              if [ $attempt -lt $max_attempts ]; then
+                sleep $sleep_duration
+              else
+                echo "Failed to submit after $max_attempts attempts"
+                exit 1
+              fi
             else
               echo "SUCCESS"
               exit 1
-            fi
-          
-            attempt=$((attempt + 1))
-            if [ $attempt -lt $max_attempts ]; then
-              sleep $sleep_duration
-            else
-              echo "Failed to submit after $max_attempts attempts"
-              exit 1
-            fi
+            fi 
           done
