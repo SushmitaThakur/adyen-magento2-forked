@@ -177,7 +177,7 @@ jobs:
         run: |
 
           # Sleep and wait for malware check to finish
-          sleep_duration= 60
+          sleep_duration=60
           sleep $sleep_duration
           
           # Make the POST request and capture the response
