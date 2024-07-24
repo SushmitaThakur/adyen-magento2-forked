@@ -134,7 +134,7 @@ jobs:
         id: prepare_payload
         env:
           #NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
-          NEW_VERSION: "11.0.7"
+          NEW_VERSION: "11.0.8"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
           THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
           #USERGUIDE_FILE_ID: "657c7af4003a79.72655930.0"
@@ -144,18 +144,19 @@ jobs:
           
           # # Replace single quotes with escaped single quotes
           #escaped_notes=$(echo "${THIS_RELEASE_NOTES}" | sed "s/'/\\\\'/g")
-          escaped_notes="what is this shit"
+          #escaped_notes="what is this shit"
           # Print the result
           echo "$escaped_notes"
           
           # Replace placeholders with actual values
           sed -i "s/VERSION/${NEW_VERSION}/g" updated-payload.json
           sed -i "s/FILE_UPLOAD_ID/${FILE_UPLOAD_ID}/g" updated-payload.json
-          sed -i "s/USERGUIDE_FILE_ID/${USERGUIDE_FILE_ID}/g" updated-payload.json
+          
+          # sed -i "s/USERGUIDE_FILE_ID/${USERGUIDE_FILE_ID}/g" updated-payload.json
           # sed -i "s|RELEASE_NOTES|$THIS_RELEASE_NOTES|" updated-payload.json
 
           # Update the JSON payload with the release notes
-          jq --arg notes "$THIS_RELEASE_NOTES" '.RELEASE_NOTES = $notes' updated-payload.json > updated-payload.tmp && mv updated-payload.tmp updated-payload.json
+          jq --arg notes "$THIS_RELEASE_NOTES" '.[0].release_notes = $notes' updated-payload.json > updated-payload.tmp && mv updated-payload.tmp updated-payload.json
           
           cat updated-payload.json
           
@@ -164,11 +165,11 @@ jobs:
           SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
           BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
         run: |
-          attempt=0
-          max_attempts=3
-          sleep_duration=30
+          #attempt=0
+          # max_attempts=3
+          #sleep_duration=30
           
-          sleep $sleep_duration
+          #sleep $sleep_duration
           
           #while [ $attempt -lt $max_attempts ]; do
           
@@ -187,16 +188,19 @@ jobs:
             
               if [ -n "$code" ]; then
                 echo "$code"
-                echo "Attempt = $attempt"
+                #echo "Attempt = $attempt"
+                if [ "$code" -eq 1321 ]; then
+                  echo "The package is submitted as a draft and waiting for malware check."
+                fi
               fi    
               
-              attempt=$((attempt + 1))
-              if [ $attempt -lt $max_attempts ]; then
-                sleep $sleep_duration
-              else
-                echo "Failed to submit after $max_attempts attempts"
-                exit 1
-              fi
+             # attempt=$((attempt + 1))
+             # if [ $attempt -lt $max_attempts ]; then
+             #   sleep $sleep_duration
+             # else
+             #   echo "Failed to submit after $max_attempts attempts"
+             #   exit 1
+             # fi
             else
               echo "SUCCESS"
               exit 1
