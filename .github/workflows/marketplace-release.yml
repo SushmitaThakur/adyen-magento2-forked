@@ -134,10 +134,10 @@ jobs:
         id: prepare_payload
         env:
           #NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
-          NEW_VERSION: "11.0.5"
+          NEW_VERSION: "11.0.6"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
           THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
-          USERGUIDE_FILE_ID: "657c7af4003a79.72655930.0"
+          #USERGUIDE_FILE_ID: "657c7af4003a79.72655930.0"
         run: |
           # Read the JSON template and replace placeholders with actual values
           cp .github/workflows/payload-template.json updated-payload.json
@@ -152,7 +152,7 @@ jobs:
           sed -i "s/VERSION/${NEW_VERSION}/g" updated-payload.json
           sed -i "s/FILE_UPLOAD_ID/${FILE_UPLOAD_ID}/g" updated-payload.json
           sed -i "s/USERGUIDE_FILE_ID/${USERGUIDE_FILE_ID}/g" updated-payload.json
-          sed -i "s|RELEASE_NOTES|$escaped_notes|" updated-payload.json
+          sed -i "s|RELEASE_NOTES|$THIS_RELEASE_NOTES|" updated-payload.json
 
           cat updated-payload.json
           
@@ -163,9 +163,12 @@ jobs:
         run: |
           attempt=0
           max_attempts=3
-          sleep_duration=5
+          sleep_duration=30
           
-          while [ $attempt -lt $max_attempts ]; do
+          sleep $sleep_duration
+          
+          #while [ $attempt -lt $max_attempts ]; do
+          
             # Make the POST request and capture the response
             response_body=$(curl -s -X POST \
               -H "Authorization: Bearer $SESSION_TOKEN" \
@@ -195,4 +198,5 @@ jobs:
               echo "SUCCESS"
               exit 1
             fi 
-          done
+            
+          #done
