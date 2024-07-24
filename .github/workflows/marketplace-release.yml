@@ -134,7 +134,7 @@ jobs:
         id: prepare_payload
         env:
           #NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
-          NEW_VERSION: "11.0.8"
+          NEW_VERSION: "11.0.9"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
           THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
           #USERGUIDE_FILE_ID: "657c7af4003a79.72655930.0"
@@ -144,7 +144,7 @@ jobs:
           
           # # Replace single quotes with escaped single quotes
           #escaped_notes=$(echo "${THIS_RELEASE_NOTES}" | sed "s/'/\\\\'/g")
-          #escaped_notes="what is this shit"
+          escaped_notes="What's Changed\nNew Features 💎\n[ECP-9249] Support new Ideal payment flow by @candemiralp in #2648\nOther Changes 🖇️\n[ECP-9223-v8] Update Apple Pay domain association file download URL by @candemiralp in #2641\n[ECP-8805-v8] Allow configuring Adyen API credentials on store level by @SushmitaThakur in #2661\nRelease 8.23.0 by @khushboo-singhvi in #2676\nFull Changelog: 8.22.9...8.23.0\nAdyen Web components version - v5.65.0"
           # Print the result
           echo "$escaped_notes"
           
@@ -153,7 +153,7 @@ jobs:
           sed -i "s/FILE_UPLOAD_ID/${FILE_UPLOAD_ID}/g" updated-payload.json
           
           # sed -i "s/USERGUIDE_FILE_ID/${USERGUIDE_FILE_ID}/g" updated-payload.json
-          # sed -i "s|RELEASE_NOTES|$THIS_RELEASE_NOTES|" updated-payload.json
+          # sed -i "s|RELEASE_NOTES|$escaped_notes|" updated-payload.json
 
           # Update the JSON payload with the release notes
           jq --arg notes "$THIS_RELEASE_NOTES" '.[0].release_notes = $notes' updated-payload.json > updated-payload.tmp && mv updated-payload.tmp updated-payload.json
@@ -167,8 +167,9 @@ jobs:
         run: |
           #attempt=0
           # max_attempts=3
+
+          # Sleep and wait for malware check to finish
           #sleep_duration=30
-          
           #sleep $sleep_duration
           
           #while [ $attempt -lt $max_attempts ]; do
