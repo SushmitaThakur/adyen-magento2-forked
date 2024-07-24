@@ -15,23 +15,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # will work for live only
-      - name: Extract Tag Name
-        id: extract_tag
-        run: |
-          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          echo "The tag name is $TAG_NAME"
-
-      - name: Use the Tag Name
-        run: |
-          echo "Using the tag name: $TAG_NAME"
-
       - name: Fetch the latest release
         id: fetch_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # for test only
           response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+          
+          # for live only
+          # response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}")
+          
           release_url=$(echo $response | jq -r '.zipball_url')
           release_notes=$(echo $response | jq -r '.body')
           release_tagname=$(echo $response | jq -r '.tag_name')
@@ -133,15 +127,13 @@ jobs:
       - name: Prepare JSON Payload
         id: prepare_payload
         env:
-          #NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
-          NEW_VERSION: "11.0.11"
+          NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
+          #NEW_VERSION: "11.0.11"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
           THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
         run: |
           # Read the JSON template and replace placeholders with actual values
           cp .github/workflows/payload-template.json updated-payload.json
-          
-          THIS_RELEASE_NOTES="What's Changed\nNew Features 💎\n[ECP-9249] Support new Ideal payment flow by @candemiralp in #2648\nOther Changes 🖇️\n[ECP-9223-v8] Update Apple Pay domain association file download URL by @candemiralp in #2641\n[ECP-8805-v8] Allow configuring Adyen API credentials on store level by @SushmitaThakur in #2661\nRelease 8.23.0 by @khushboo-singhvi in #2676\nFull Changelog: 8.22.9...8.23.0\nAdyen Web components version - v5.65.0"
           
           # Replace placeholders with actual values
           sed -i "s/VERSION/${NEW_VERSION}/g" updated-payload.json
