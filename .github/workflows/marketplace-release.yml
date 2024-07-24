@@ -134,7 +134,7 @@ jobs:
         id: prepare_payload
         env:
           #NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
-          NEW_VERSION: "11.0.0"
+          NEW_VERSION: "11.0.1"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
           THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
           USERGUIDE_FILE_ID: "657c7af4003a79.72655930.0"
@@ -164,30 +164,36 @@ jobs:
           attempt=0
           max_attempts=3
           sleep_duration=5
+          
           while [ $attempt -lt $max_attempts ]; do
-            # Use -w to capture HTTP status code and -o to discard the response body
-            response=$(curl -s -o response_body.json -w "%{http_code}" \
-              -X POST \
+            # Make the POST request and capture the response body
+            response_body=$(curl -s -X POST \
               -H "Authorization: Bearer $SESSION_TOKEN" \
               -H "Content-Type: application/json" \
               --data @updated-payload.json \
               "${BASE_URL}/rest/v1/products/packages")
-      
-            echo "HTTP Status Code: $response"
-            # for debug
-            cat response_body.json
+          
+            # Save the response body to a file (for debugging purposes)
+            echo "$response_body" > response_body.json
             
-            if [ "$response" -eq 200 ]; then
-              echo "Submission successful"
+            # Extract the "code" field from the JSON response
+            code=$(echo "$response_body" | jq -r '.code // empty')
+          
+            echo "Response body: $response_body"  # For debugging
+          
+            if [ -n "$code" ]; then
+              echo "Response code: $code"
+              echo "Submission failed"
               break
             else
-              echo "Submission failed with response code $response. Retrying in $sleep_duration seconds..."
-              attempt=$((attempt + 1))
-              if [ $attempt -lt $max_attempts ]; then
-                sleep $sleep_duration
-              else
-                echo "Failed to submit after $max_attempts attempts"
-                exit 1
-              fi
+              echo "SUCCESS"
+            fi
+          
+            attempt=$((attempt + 1))
+            if [ $attempt -lt $max_attempts ]; then
+              sleep $sleep_duration
+            else
+              echo "Failed to submit after $max_attempts attempts"
+              exit 1
             fi
           done
