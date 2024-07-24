@@ -55,7 +55,7 @@ jobs:
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
-          filename: 'processed_release.zip'
+          filename: 'magento-main-adyen.zip'
           exclusions: '*.git* *.DS_Store'
 
       - name: List files for verification
@@ -127,8 +127,8 @@ jobs:
       - name: Prepare JSON Payload
         id: prepare_payload
         env:
-          NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
-          #NEW_VERSION: "11.0.11"
+          # NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
+          NEW_VERSION: "11.0.12"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
           THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
         run: |
