@@ -134,7 +134,7 @@ jobs:
         id: prepare_payload
         env:
           #NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
-          NEW_VERSION: "11.0.2"
+          NEW_VERSION: "11.0.3"
           FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
           THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
           USERGUIDE_FILE_ID: "657c7af4003a79.72655930.0"
@@ -166,24 +166,23 @@ jobs:
           sleep_duration=5
           
           while [ $attempt -lt $max_attempts ]; do
-            # Make the POST request and capture the response body
+            # Make the POST request and capture the response
             response_body=$(curl -s -X POST \
               -H "Authorization: Bearer $SESSION_TOKEN" \
               -H "Content-Type: application/json" \
               --data @updated-payload.json \
               "${BASE_URL}/rest/v1/products/packages")
-          
-            # Save the response body to a file (for debugging purposes)
-            echo "$response_body" > response_body.json
+
+            if [ -n "response_body" ]; then
+              # Extract the "code" field from the JSON response
+              code=$(echo "$response_body" | jq -r '.code // empty')
             
-            # Extract the "code" field from the JSON response
-            code=$(echo "$response_body" | jq -r '.code // empty')
-          
-            echo "Response body: $response_body"  # For debugging
-          
-            if [ -n "$code" ]; then
-              echo "$response_body"
-              break
+              echo "Response body: $response_body"  # For debugging
+            
+              if [ -n "$code" ]; then
+                echo "$response_body"
+                break
+              fi    
             else
               echo "SUCCESS"
             fi
